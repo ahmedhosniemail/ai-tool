@@ -1,6 +1,11 @@
 streamlit
 google-generativeai
 Pillow
+pandas
+python-docx
+xlsxwriter
+reportlab
+
 
 
 
