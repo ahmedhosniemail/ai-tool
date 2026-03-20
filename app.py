@@ -1,32 +1,28 @@
 import streamlit as st
-import pandas as pd
+import google.generativeai as genai
 from PIL import Image
 
-st.set_page_config(page_title="AI Data Extractor - Ahmed", page_icon="🔍")
+# إعداد المحرك بمفتاحك الذي استخرجته للتو
+genai.configure(api_key="AIzaSyC9v9vX4ioZm8PKttNwefL7QuOKXAaiFfk")
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-st.title("📊 AI Data Extractor Pro")
-st.markdown("---")
+st.set_page_config(page_title="Ahmed AI Pro", layout="centered")
+st.title("🤖 مستخرج البيانات الذكي - أحمد حسني")
+st.write("ارفع صورة فاتورة أو وثيقة وسأقوم بتحليلها لك فوراً")
 
-# واجهة رفع الملفات
-uploaded_file = st.file_uploader("ارفع صورة الوثيقة أو الفاتورة هنا (JPG/PNG)", type=["png", "jpg", "jpeg"])
+uploaded_file = st.file_uploader("اختر صورة (JPG/PNG)", type=["jpg", "jpeg", "png"])
 
-if uploaded_file is not None:
-    # عرض الصورة المرفوعة
-    image = Image.open(uploaded_file)
-    st.image(image, caption="📸 الصورة المرفوعة", use_column_width=True)
+if uploaded_file:
+    img = Image.open(uploaded_file)
+    st.image(img, caption="📸 الصورة المرفوعة", use_column_width=True)
     
-    with st.spinner('⏳ جاري تحليل النص بالذكاء الاصطناعي...'):
-        # هنا سنضع محرك الذكاء الاصطناعي في الخطوة القادمة
-        # حالياً سنظهر بيانات تفاعلية لنبهر المستخدم
-        st.success("✅ تم استخراج البيانات بنجاح!")
-        
-        # محاكاة لجدول بيانات مستخرج
-        results = {
-            "المعلمة": ["اسم العميل", "التاريخ", "المبلغ الإجمالي"],
-            "القيمة المستخرجة": ["جاري التحليل...", "2026-03-20", "تحتاج ربط API"]
-        }
-        df = pd.DataFrame(results)
-        st.table(df)
-
-st.sidebar.title("حول المشروع")
-st.sidebar.info("هذا الموقع مطور بواسطة أحمد حسني لأتمتة استخراج البيانات.")
+    if st.button("🚀 استخراج البيانات الآن"):
+        with st.spinner("جاري القراءة والتحليل..."):
+            try:
+                # أمر الذكاء الاصطناعي
+                response = model.generate_content(["اقرأ هذه الصورة واستخرج البيانات المهمة منها في جدول واشرح المحتوى باختصار.", img])
+                st.success("✅ تم التحليل!")
+                st.markdown(response.text)
+            except Exception as e:
+                st.error(f"حدث خطأ: {e}")
+                
