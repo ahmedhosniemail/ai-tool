@@ -4,6 +4,7 @@ Pillow
 pandas
 python-docx
 xlsxwriter
+reportlab
 
 
 
