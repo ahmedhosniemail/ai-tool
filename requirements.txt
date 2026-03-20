@@ -3,7 +3,9 @@ google-generativeai
 Pillow
 pandas
 python-docx
+fpdf
 xlsxwriter
+
 
 
 
