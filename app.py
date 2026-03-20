@@ -4,32 +4,56 @@ from PIL import Image
 import pandas as pd
 from io import BytesIO
 from docx import Document
+from fpdf import FPDF
+import re
 
-# 1. إعدادات الصفحة واللغة
+# إعدادات الصفحة والواجهة الفاتحة
 st.set_page_config(page_title="Ahmed AI Pro", layout="centered")
 
-# القائمة الجانبية للغات (لضمان عدم اختفائها)
+st.markdown("""
+<style>
+    .stApp { background-color: #f8f9fa; color: #1a253a; }
+    .main-header { text-align: center; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #d4af37; margin-bottom: 20px; }
+    div.stButton > button { background: linear-gradient(135deg, #1e3c72, #2a5298) !important; color: white !important; border-radius: 10px !important; width: 100%; height: 50px; font-weight: bold; }
+</style>
+""", unsafe_allow_html=True)
+
+# خيار اللغات (في السايد بار لضمان عدم اختفائه)
 st.sidebar.title("Settings / الإعدادات")
-lang_choice = st.sidebar.selectbox("Language / اللغة", ["العربية", "English"])
+sel_lang = st.sidebar.selectbox("Language / اللغة", ["العربية", "English", "Français"])
 
+# نصوص الواجهة
 texts = {
-    "العربية": {"title": "أحمد حسني - AI PRO", "up": "ارفع الصورة هنا", "btn": "تحليل واستخراج", "res": "النتائج:"},
-    "English": {"title": "AHMED AI PRO", "up": "Upload Image", "btn": "Analyze & Extract", "res": "Results:"}
+    "العربية": {"title": "أحمد حسني - AI PRO", "up": "ارفع صورة (جدول/فاتورة)", "btn": "تحليل واستخراج", "dl": "تحميل النتائج:"},
+    "English": {"title": "AHMED AI PRO", "up": "Upload Image (Table/Invoice)", "btn": "Analyze & Extract", "dl": "Download Results:"},
+    "Français": {"title": "AHMED AI PRO", "up": "Charger une image", "btn": "Analyser", "dl": "Télécharger:"}
 }
-t = texts[lang_choice]
+t = texts[sel_lang]
 
-st.title(t["title"])
+st.markdown(f'<div class="main-header"><h1>{t["title"]}</h1></div>', unsafe_allow_html=True)
 
-# 2. الحل الجذري لخطأ 404 (تغيير طريقة التعريف)
+# الربط مع الموديل (حل مشكلة 404)
 genai.configure(api_key="AIzaSyC9v9vX4ioZm8PKttNwefL7QuOKXAaiFfk")
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-# مصفوفة تجريبية لضمان عمل الموديل الصحيح
-try:
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except:
-    model = genai.GenerativeModel('gemini-pro-vision') # حل احتياطي
+# دوال التحميل
+def create_pdf(text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, txt=text.encode('latin-1', 'ignore').decode('latin-1'))
+    return pdf.output(dest='S').encode('latin-1')
 
-# 3. معالجة الصور والتحليل
+def create_excel(text):
+    output = BytesIO()
+    # تحويل بسيط جدا للجدول
+    lines = [line.strip() for line in text.split('\n') if '|' in line]
+    if lines:
+        df = pd.DataFrame([l.split('|') for l in lines])
+        df.to_excel(output, index=False, header=False)
+    return output.getvalue()
+
+# منطقة العمل
 file = st.file_uploader(t["up"], type=["jpg", "png", "jpeg"])
 
 if file:
@@ -39,30 +63,26 @@ if file:
     if st.button(t["btn"]):
         with st.spinner("🧠 جاري المعالجة..."):
             try:
-                # إرسال الطلب
-                response = model.generate_content(["Extract all table data clearly", img])
-                result = response.text
+                response = model.generate_content(["Extract data as table", img])
+                res = response.text
+                st.success("✅ تم!")
+                st.markdown(res)
                 
-                st.success("✅ تم الاستخراج")
-                st.markdown(f"### {t['res']}")
-                st.markdown(result)
-                
-                # أزرار التحميل
                 st.divider()
-                col1, col2 = st.columns(2)
+                st.write(t["dl"])
+                c1, c2, c3 = st.columns(3)
                 
-                # Excel
-                with col1:
-                    st.download_button("Excel", result.encode('utf-8'), "data.csv")
-                
-                # Word
-                with col2:
+                with c1:
+                    st.download_button("Excel", create_excel(res), "data.xlsx")
+                with c2:
                     doc = Document()
-                    doc.add_paragraph(result)
+                    doc.add_paragraph(res)
                     b = BytesIO()
                     doc.save(b)
                     st.download_button("Word", b.getvalue(), "data.docx")
+                with c3:
+                    st.download_button("PDF", create_pdf(res), "data.pdf")
                     
             except Exception as e:
-                st.error(f"حدث خطأ في الموديل: {e}")
+                st.error(f"Error: {e}")
                 
