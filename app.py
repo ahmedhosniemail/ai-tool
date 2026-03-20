@@ -6,8 +6,8 @@ from PIL import Image
 API_KEY = "AIzaSyC9v9vX4ioZm8PKttNwefL7QuOKXAaiFfk"
 genai.configure(api_key=API_KEY)
 
-# استخدام الإصدار الأكثر استقراراً لتجنب خطأ 404
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+# استخدام الاسم الرسمي الكامل للموديل
+model = genai.GenerativeModel('models/gemini-1.5-flash')
 
 st.set_page_config(page_title="Ahmed AI Extractor", layout="centered")
 st.title("🤖 مستخرج البيانات الذكي - أحمد حسني")
@@ -19,7 +19,7 @@ if uploaded_file:
     st.image(img, caption="📸 الصورة المرفوعة", use_column_width=True)
     
     if st.button("🚀 ابدأ تحليل البيانات الآن"):
-        with st.spinner("جاري قراءة البيانات بدقة..."):
+        with st.spinner("جاري قراءة البيانات..."):
             try:
                 # طلب التحليل
                 response = model.generate_content(["استخرج البيانات من هذه الصورة في شكل جدول", img])
