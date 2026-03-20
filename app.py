@@ -6,78 +6,107 @@ from io import BytesIO
 from docx import Document
 import re
 
-# ==========================================
 # 1. إعدادات الصفحة
-# ==========================================
-st.set_page_config(
-    page_title="Ahmed AI Pro - Deep Blue",
-    page_icon="🤖",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="Ahmed AI Pro", page_icon="🤖", layout="centered")
 
-# ==========================================
-# 2. تصميم CSS عصري، ثابت وأنيق (Deep Blue Theme)
-# ==========================================
+# 2. تصميم CSS احترافي (لون كحلي ثابت مع لمسة زجاجية)
 st.markdown("""
 <style>
-    /* 💎 لون خلفية ثابت وأنيق (Deep Midnight Blue) */
     .stApp {
-        background-color: #1a253a; /* كحلي عميق ملكي */
-        color: #ecf0f1; /* نصوص بيضاء فاتحة */
+        background-color: #0d1b2a;
+        color: white;
     }
-
-    /* تأثير زجاجي (Glassmorphism) للعناصر الرئيسية */
-    .glass-container {
-        background: rgba(255, 255, 255, 0.05); /* نصف شفافة */
+    .main-container {
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 20px;
-        padding: 25px;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        padding: 30px;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        margin-bottom: 25px;
         text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-
-    /* 🤖 تنسيق صورة الذكاء الاصطناعي الاحترافية */
-    .ai-avatar {
-        width: 120px;
-        height: 120px;
+    .ai-image {
+        width: 150px;
         border-radius: 50%;
-        object-fit: cover;
-        border: 4px solid #3498db; /* إطار أزرق فاتح */
-        box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
         margin-bottom: 20px;
+        border: 3px solid #1b263b;
+        box-shadow: 0 0 20px #415a77;
     }
-
-    /* 💎 تصميم العناوين */
-    .main-title {
-        color: #ecf0f1;
-        font-family: 'Cairo', sans-serif;
-        font-weight: bold;
-        margin-bottom: 10px;
-        font-size: 2.5rem;
-    }
-    
-    .sub-title {
-        color: #bdc3c7; /* لون رمادي فاتح */
-        font-size: 1.1rem;
-        margin-bottom: 0px;
-    }
-
-    /* 🚀 تصميم الأزرار الثابت والمحترف (Deep Blue Button) */
-    div.stButton > button {
-        background-color: #3498db !important; /* أزرق فاتح متماسك */
+    .stButton>button {
+        background: #415a77 !important;
         color: white !important;
-        border-radius: 30px !important;
-        padding: 12px 30px !important;
-        border: none !important;
-        font-size: 18px !important;
+        border-radius: 10px !important;
         font-weight: bold !important;
-        width: 100%;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        transition: all 0.3s ease;
+        border: none !important;
+        height: 50px !important;
+        transition: 0.3s !important;
     }
-    div.
+    .stButton>button:hover {
+        background: #778da9 !important;
+        transform: translateY(-2px);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# 3. نصوص اللغات
+translations = {
+    'العربية': {
+        'title': 'أحمد حسني - AI Pro',
+        'sub': 'نظام استخراج البيانات الذكي من الوثائق والجداول',
+        'up': 'ارفع الصورة هنا (JPG/PNG)',
+        'btn': '🚀 استخراج البيانات الآن',
+        'wait': 'جاري التحليل الرقمي...',
+        'res': '📊 البيانات المستخرجة:',
+        'prompt': 'استخرج البيانات من الصورة في جدول Markdown واضح بدقة عالية'
+    },
+    'English': {
+        'title': 'Ahmed Hosny - AI Pro',
+        'sub': 'Smart Data Extraction System for Documents & Tables',
+        'up': 'Upload image here (JPG/PNG)',
+        'btn': '🚀 Extract Data Now',
+        'wait': 'Digital analysis in progress...',
+        'res': '📊 Extracted Data:',
+        'prompt': 'Extract data from the image into a clear, high-precision Markdown table'
+    }
+}
+
+# القائمة الجانبية
+st.sidebar.title("Settings")
+lang_choice = st.sidebar.selectbox("Language / اللغة", list(translations.keys()))
+lang = translations[lang_choice]
+
+# 4. الواجهة الأمامية (صورة AI احترافية)
+st.markdown(f"""
+<div class="main-container">
+    <img src="https://cdn-icons-png.flaticon.com/512/2103/2103811.png" class="ai-image">
+    <h1 style='margin-bottom:0;'>{lang['title']}</h1>
+    <p style='color: #778da9;'>{lang['sub']}</p>
+</div>
+""", unsafe_allow_html=True)
+
+# 5. منطق العمل
+genai.configure(api_key="AIzaSyC9v9vX4ioZm8PKttNwefL7QuOKXAaiFfk")
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+file = st.file_uploader(lang['up'], type=['jpg', 'jpeg', 'png'])
+
+if file:
+    img = Image.open(file)
+    st.image(img, use_column_width=True)
     
+    if st.button(lang['btn']):
+        with st.spinner(lang['wait']):
+            try:
+                response = model.generate_content([lang['prompt'], img])
+                result = response.text
+                st.markdown(f"### {lang['res']}")
+                st.markdown(result)
+                
+                # أزرار التحميل
+                doc = Document()
+                doc.add_paragraph(result)
+                bio = BytesIO()
+                doc.save(bio)
+                st.download_button("Word (DOCX)", data=bio.getvalue(), file_name="data.docx")
+            except Exception as e:
+                st.error(f"Error: {e}")
+                
