@@ -27,4 +27,3 @@ if uploaded_file:
                 st.markdown(response.text)
             except Exception as e:
                 st.error(f"تنبيه: {e}")
-                س
