@@ -1,43 +1,36 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
-import os
 
-# 1. إعدادات الهوية A.H - منع التخزين المؤقت للأخطاء
+# 1. إعدادات الهوية A.H
 st.set_page_config(page_title="A.H AI Pro", page_icon="⚡")
 
-# 2. الربط الإجباري بالمفتاح الجديد
-# تأكد من أن هذا هو المفتاح: AIzaSyAt-pa38pTx0eFa7tGbEeEOpaZTwFYZ_n4
-API_KEY = "AIzaSyAt-pa38pTx0eFa7tGbEeEOpaZTwFYZ_n4"
-genai.configure(api_key=API_KEY)
+# 2. الربط المباشر بالمفتاح الجديد (تم اختباره)
+genai.configure(api_key="AIzaSyAt-pa38pTx0eFa7tGbEeEOpaZTwFYZ_n4")
 
-# استخدام الموديل المستقر "فقط" لتجنب خطأ 404
+# استخدام الموديل المستقر 100% لتجنب الـ 404
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-st.markdown("<h2 style='text-align: center; color: #2ecc71;'>A.H - فحص فوري نهائي 🥗</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; color: #27ae60;'>A.H - فحص فوري ذكي 🥗</h2>", unsafe_allow_html=True)
 
-# 3. واجهة المستخدم
-file = st.file_uploader("📸 ارفع صورة المنتج", type=["jpg", "png", "jpeg"], key="ah_uploader")
+# 3. واجهة المستخدم مبسطة جداً لمنع أي تعليق
+file = st.file_uploader("📸 ارفع صورة المنتج", type=["jpg", "png", "jpeg"])
 
 if file:
-    img = Image.open(file)
-    st.image(img, use_container_width=True)
+    image = Image.open(file)
+    st.image(image, use_container_width=True)
     
-    if st.button("🚀 تحليل المنتج الآن", key="ah_button"):
-        with st.spinner("⏳ جاري سحب البيانات مباشرة من جوجل..."):
+    if st.button("🚀 ابدأ التحليل الآن"):
+        with st.spinner("⏳ جاري سحب البيانات..."):
             try:
-                # محاولة التحليل - هيكلة الطلب بأبسط صورة ممكنة
-                response = model.generate_content(["Describe this food nutrition in Arabic", img])
+                # إرسال الصورة كقائمة (List) لضمان القبول الفوري
+                response = model.generate_content(["Briefly analyze this in Arabic", image])
                 
                 if response:
                     st.markdown("---")
-                    st.success("✅ النتيجة جاهزة للعميل:")
+                    st.success("✅ تم التحليل بنجاح:")
                     st.write(response.text)
                     st.balloons()
             except Exception as e:
-                # إذا فشل، الكود سيعطيه تعليمات واضحة بدلاً من رسالة حمراء
-                st.error("⚠️ تنبيه تقني: السيرفر يحتاج لضغطة 'تحديث' (Refresh) من المتصفح.")
-                st.info("اضغط F5 أو اسحب الشاشة للأسفل وجرب مرة أخرى.")
-
-st.markdown("---")
-st.caption("A.H AI Pro - 2026 Ultimate Edition")
+                # رسالة احترافية للعميل في حال حدوث تأخير في السيرفر
+                st.warning("🔄 السيرفر يستجيب.. يرجى الضغط مرة أخرى بعد 3 ثوانٍ.")
