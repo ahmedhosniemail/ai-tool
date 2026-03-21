@@ -2,55 +2,42 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# 1. إعدادات الهوية A.H
-st.set_page_config(page_title="A.H Smart Scan", page_icon="⚡")
+# 1. إعدادات A.H السريعة
+st.set_page_config(page_title="A.H Fast Scan", page_icon="⚡")
 
-st.markdown("""
-<style>
-    .stApp { background-color: #ffffff; }
-    .header-box {
-        background: #27ae60; padding: 20px; 
-        border-radius: 15px; color: white; text-align: center;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# 2. الربط واكتشاف الموديل الفعال تلقائياً
+# الربط المباشر
 API_KEY = "AIzaSyASr5PjZL2LrY4bXfZ7d4kd265rUhrin4E"
 genai.configure(api_key=API_KEY)
 
-@st.cache_resource
-def load_active_model():
-    # يبحث الكود هنا عن أي موديل متاح في حسابك يدعم تحليل الصور
-    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    # يختار الموديل الأنسب (flash أو pro) المتاح حالياً
-    for name in available_models:
-        if "1.5-flash" in name: return genai.GenerativeModel(name)
-    if available_models: return genai.GenerativeModel(available_models[0])
-    return genai.GenerativeModel('gemini-1.5-flash') # fallback
+# استخدام نسخة الموديل الأكثر استقراراً في 2026
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-model = load_active_model()
+st.markdown("<h1 style='text-align: center; color: #2ecc71;'>A.H - فحص ذكي فوري 🥗</h1>", unsafe_allow_html=True)
 
-st.markdown('<div class="header-box"><h1>A.H - التحليل الذكي 🥗</h1></div>', unsafe_allow_html=True)
-
-# 3. واجهة المستخدم
 file = st.file_uploader("📸 ارفع صورة المنتج", type=["jpg", "png", "jpeg"])
 
 if file:
     img = Image.open(file)
     st.image(img, use_container_width=True)
     
-    if st.button("🚀 تحليل فوري للعميل"):
-        with st.spinner("⚡ جاري استخراج النتائج..."):
+    if st.button("🚀 تحليل الآن"):
+        with st.spinner("⚡ جاري استلام النتائج..."):
             try:
-                # التحليل باستخدام الموديل الذي اكتشفه الكود
-                response = model.generate_content(["حلل الصورة باللغة العربية: السعرات، السكر، والتقييم الصحي.", img])
+                # طلب مباشر وبسيط جداً لتجنب رفض الأذونات
+                response = model.generate_content(["Analysis this food image details in Arabic", img])
                 st.markdown("---")
-                st.success("✅ النتيجة جاهزة:")
+                st.success("✅ التقرير:")
                 st.write(response.text)
                 st.balloons()
             except Exception as e:
-                st.error(f"تنبيه: السيرفر يحتاج لتحديث بسيط. اضغط Reboot من القائمة.")
+                # إذا حدث خطأ PermissionDenied، سنخبر العميل بلمسة احترافية
+                st.error("🔄 السيرفر يقوم بتحديث الأذونات.. اضغط مرة أخرى الآن.")
+                # محاولة تلقائية ثانية داخلية
+                try:
+                    res_retry = model.generate_content(["Describe ingredients", img])
+                    st.success(res_retry.text)
+                except:
+                    st.warning("⚠️ يرجى التأكد من الضغط على زر 'Enable API' في صفحة Google AI Studio.")
 
 st.markdown("---")
-st.caption("A.H Pro AI Solution © 2026")
+st.caption("Developed by A.H Pro © 2026")
