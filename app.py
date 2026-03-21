@@ -41,4 +41,27 @@ else:
     btn_text = "🔍 Analyze Now"
     p_text = "Analyze image: extract calories, sugars. Rate it 🟢, 🟡, or 🔴 and give advice."
 
-# 4
+# 4. الربط بالمفتاح الجديد
+genai.configure(api_key="AIzaSyASr5PjZL2LrY4bXfZ7d4kd265rUhrin4E")
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+# 5. الواجهة
+st.markdown(f'<div class="header-box"><h1>{title}</h1><p>{sub}</p></div>', unsafe_allow_html=True)
+
+file = st.file_uploader(up_text, type=["jpg", "png", "jpeg"])
+
+if file:
+    img = Image.open(file)
+    st.image(img, use_container_width=True)
+    
+    if st.button(btn_text):
+        with st.spinner("⏳..."):
+            try:
+                response = model.generate_content([p_text, img])
+                st.markdown("---")
+                st.success(response.text)
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+st.markdown("---")
+st.caption("Developed by A.H AI Pro © 2026")
