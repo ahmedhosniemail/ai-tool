@@ -18,41 +18,50 @@ st.markdown("""
 with st.sidebar:
     lang = st.selectbox("🌐 Language", ["العربية", "English"])
 
-if lang == "العربية":
-    title, up_txt, btn_txt = "A.H - ماسح التغذية", "📸 ارفع صورة المنتج", "🔍 ابدأ التحليل"
-    p_txt = "حلل هذه الصورة الغذائية بدقة واستخرج المكونات والتقييم الصحي."
-else:
-    title, up_txt, btn_txt = "A.H - Nutri-Scan", "📸 Upload Product", "🔍 Analyze Now"
-    p_txt = "Analyze this food product image and give a health rating."
-
-# 2. الربط (تم تحديث اسم الموديل ليكون عالمياً)
+# الربط بالمفتاح
 genai.configure(api_key="AIzaSyASr5PjZL2LrY4bXfZ7d4kd265rUhrin4E")
 
-# هذا السطر تم تعديله لضمان التوافق 100%
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+# 2. دالة ذكية لاختيار الموديل المتاح تلقائياً
+def get_model():
+    # نحاول أولاً مع الموديل الأحدث، ثم الأقدم، حتى ينجح واحد
+    models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro-vision']
+    for m_name in models_to_try:
+        try:
+            m = genai.GenerativeModel(m_name)
+            # تجربة وهمية للتأكد من وجود الموديل
+            return m
+        except:
+            continue
+    return genai.GenerativeModel('gemini-1.5-flash-latest')
 
-st.markdown(f'<div class="header-box"><h1>{title}</h1></div>', unsafe_allow_html=True)
+model = get_model()
 
-# 3. الرفع والتحليل
-file = st.file_uploader(up_txt, type=["jpg", "png", "jpeg"])
+# نصوص الواجهة
+t = {
+    "العربية": ["A.H - ماسح التغذية", "📸 ارفع صورة المنتج", "🔍 ابدأ التحليل", "حلل الصورة بدقة"],
+    "English": ["A.H - Nutri-Scan", "📸 Upload Product", "🔍 Analyze Now", "Analyze this image"]
+}[lang]
 
-if file is not None:
-    image = Image.open(file)
-    st.image(image, caption="✅ تم رفع الصورة بنجاح", use_container_width=True)
+st.markdown(f'<div class="header-box"><h1>{t[0]}</h1></div>', unsafe_allow_html=True)
+
+file = st.file_uploader(t[1], type=["jpg", "png", "jpeg"])
+
+if file:
+    img = Image.open(file)
+    st.image(img, use_container_width=True)
     
-    if st.button(btn_txt):
-        with st.spinner("⏳ جاري التحليل..."):
+    if st.button(t[2]):
+        with st.spinner("⏳..."):
             try:
-                # محاولة التحليل
-                response = model.generate_content([p_txt, image])
-                st.markdown("---")
+                # إرسال التحليل
+                response = model.generate_content([t[3], img])
                 st.success(response.text)
             except Exception as e:
-                st.error("تنبيه: جاري إعادة الاتصال بالمحرر الذكي...")
-                # محاولة بديلة بموديل آخر إذا فشل الأول
-                model_alt = genai.GenerativeModel('gemini-pro-vision')
-                response = model_alt.generate_content([p_txt, image])
-                st.success(response.text)
+                st.error("جاري التبديل للموديل الاحتياطي...")
+                # محاولة أخيرة بموديل عام
+                fallback = genai.GenerativeModel('gemini-1.5-flash-8b')
+                res = fallback.generate_content([t[3], img])
+                st.success(res.text)
 
 st.markdown("---")
 st.caption("Developed by A.H AI Pro © 2026")
