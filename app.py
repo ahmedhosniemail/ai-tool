@@ -2,42 +2,80 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# إعدادات الواجهة (Apple Health Style)
-st.set_page_config(page_title="Nutri-Scan 2026", page_icon="🥗")
+# 1. إعدادات الواجهة (تصميم عصري ونظيف)
+st.set_page_config(page_title="Ahmed Nutri-Scan 2026", page_icon="🥗", layout="centered")
 
-# القائمة الجانبية للغات
+st.markdown("""
+<style>
+    .stApp { background-color: #ffffff; color: #2c3e50; }
+    .header-box {
+        background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        padding: 30px; border-radius: 20px; color: white;
+        text-align: center; margin-bottom: 25px;
+    }
+    div.stButton > button {
+        background: #27ae60 !important; color: white !important;
+        border-radius: 12px !important; font-weight: bold !important;
+        height: 50px; width: 100%; border: none !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# 2. القائمة الجانبية للغات (مضمونة الظهور)
 with st.sidebar:
-    lang = st.selectbox("🌐 Language", ["العربية", "English"])
+    st.header("⚙️ Settings")
+    lang = st.selectbox("🌐 Choose Language / اختر اللغة", ["العربية", "English"])
 
-# الربط مع الـ API
-genai.configure(api_key="AIzaSyC9v9vX4ioZm8PKttNwefL7QuOKXAaiFfk")
-
-# دالة ذكية لاختيار الموديل المتاح لتجنب خطأ 404
-def get_working_model():
-    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    # نفضل flash إذا كان متاحاً، وإلا نأخذ أول موديل رؤية (Vision) متاح
-    for target in ['models/gemini-1.5-flash', 'models/gemini-pro-vision']:
-        if target in available_models:
-            return genai.GenerativeModel(target)
-    return genai.GenerativeModel(available_models[0]) if available_models else None
-
-model = get_working_model()
-
-# نصوص الواجهة
-t = {
-    "العربية": {"h": "ماسح التغذية الذكي", "btn": "تحليل الصحة"},
-    "English": {"h": "Nutri-Scan AI", "btn": "Analyze Health"}
+content = {
+    "العربية": {
+        "title": "أحمد - ماسح التغذية الذكي",
+        "desc": "صور ملصق المكونات وسأحلل لك جودتها الصحية فوراً",
+        "up": "📸 ارفع صورة المكونات هنا",
+        "btn": "🔍 تحليل الصحة الآن",
+        "prompt": "حلل هذه الصورة لمنتج غذائي. هل هو صحي؟ استخرج السعرات والمواد الضارة وأعطِ تقييماً بـ 🟢 أو 🟡 أو 🔴"
+    },
+    "English": {
+        "title": "Ahmed - Nutri-Scan AI",
+        "desc": "Scan ingredients and get instant health analysis",
+        "up": "📸 Upload ingredients image",
+        "btn": "🔍 Analyze Health Now",
+        "prompt": "Analyze this food product image. Is it healthy? Extract calories, harmful ingredients, and rate it with 🟢, 🟡, or 🔴"
+    }
 }[lang]
 
-st.title(t["h"])
+# 3. الربط مع المفتاح الجديد (ضع مفتاحك هنا)
+# تأكد من وضع المفتاح الجديد بين علامات التنصيص
+API_KEY = "AIzaSyASr5PjZL2LrY4bXfZ7d4kd265rUhrin4E" 
+genai.configure(api_key=API_KEY)
 
-file = st.file_uploader("📸", type=["jpg", "png", "jpeg"])
+# استخدام اسم الموديل الأكثر استقراراً في 2026
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-if file and model:
+# 4. واجهة المستخدم
+st.markdown(f"""
+<div class="header-box">
+    <h1>{content['title']}</h1>
+    <p>{content['desc']}</p>
+</div>
+""", unsafe_allow_html=True)
+
+file = st.file_uploader(content['up'], type=["jpg", "png", "jpeg"])
+
+if file:
     img = Image.open(file)
-    st.image(img)
-    if st.button(t["btn"]):
-        with st.spinner("⏳"):
-            response = model.generate_content(["Is this food healthy? analyze ingredients", img])
-            st.success(response.text)
-            
+    st.image(img, use_container_width=True)
+    
+    if st.button(content['btn']):
+        with st.spinner("⏳ جاري الفحص..."):
+            try:
+                # إرسال الصورة للتحليل
+                response = model.generate_content([content['prompt'], img])
+                st.markdown("---")
+                st.markdown("### 🧬 التقرير الصحي:")
+                st.success(response.text)
+            except Exception as e:
+                st.error(f"حدث خطأ: {e}")
+                st.info("نصيحة: تأكد من صحة مفتاح الـ API الجديد في الكود.")
+
+st.markdown("---")
+st.caption("Ahmed AI Vision 2026 - Pro")
