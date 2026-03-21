@@ -1,45 +1,45 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
-import time
 
-# 1. إعدادات سريعة A.H
-st.set_page_config(page_title="A.H Quick Scan", page_icon="⚡")
+# 1. إعدادات الهوية A.H
+st.set_page_config(page_title="A.H Fast Scan", page_icon="⚡")
 
-# 2. الربط (تأكد من عدم وجود مسافات في المفتاح)
-API_KEY = "AIzaSyASr5PjZL2LrY4bXfZ7d4kd265rUhrin4E"
-genai.configure(api_key=API_KEY)
-
-# استخدام الموديل الأكثر استجابة للطلبات السريعة
+# الربط (استخدام النسخة الأكثر استقراراً)
+genai.configure(api_key="AIzaSyASr5PjZL2LrY4bXfZ7d4kd265rUhrin4E")
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-st.markdown("<h1 style='text-align: center; color: #27ae60;'>A.H - فحص فوري 🚀</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #2ecc71;'>A.H - التحليل الذكي 🥗</h1>", unsafe_allow_html=True)
 
-file = st.file_uploader("📸 ارفع الصورة الآن", type=["jpg", "png", "jpeg"])
+file = st.file_uploader("📸 ارفع صورة المنتج", type=["jpg", "png", "jpeg"])
 
 if file:
     img = Image.open(file)
     st.image(img, use_container_width=True)
     
-    if st.button("🔍 تحليل فوري"):
-        placeholder = st.empty()
-        placeholder.info("⚡ جاري الاتصال المباشر بالسيرفر...")
-        
-        # محاولة التحليل 3 مرات متتالية في ثوانٍ بسيطة لتجاوز الرفض المؤقت
-        success = False
-        for i in range(3):
-            try:
-                response = model.generate_content(["Analysis this food image", img])
-                placeholder.success("✅ تم التحليل بنجاح!")
-                st.write(response.text)
-                success = True
-                break
-            except Exception as e:
-                placeholder.warning(f"🔄 محاولة اتصال رقم {i+1}...")
-                time.sleep(1) # انتظار ثانية واحدة فقط
-        
-        if not success:
-            st.error("❌ السيرفر مشغول حالياً. جرب الضغط على الزر مرة أخرى.")
+    if st.button("🚀 ابدأ الفحص الفوري"):
+        # استخدام خاصية الـ stream لعرض النتائج فوراً
+        try:
+            with st.spinner("⚡ جاري استخراج البيانات..."):
+                response = model.generate_content(
+                    ["Analyze this nutrition label, mention calories, sugar, and a health rating (🟢, 🟡, 🔴) in Arabic.", img],
+                    stream=True
+                )
+                
+                st.markdown("---")
+                st.markdown("### 🧬 النتائج:")
+                
+                # عرض النتائج فور ولادتها من السيرفر
+                full_text = ""
+                message_placeholder = st.empty()
+                for chunk in response:
+                    full_text += chunk.text
+                    message_placeholder.markdown(full_text + "▌")
+                message_placeholder.markdown(full_text)
+                st.balloons() # احتفال بالنجاح!
+        except Exception as e:
+            st.error(f"خطأ في الاتصال: {e}")
+            st.info("💡 نصيحة لـ A.H: تأكد من تفعيل Gemini API في Google Cloud لهذا المفتاح.")
 
 st.markdown("---")
-st.caption("A.H AI Pro - Fast Response Edition 2026")
+st.caption("Developed by A.H Pro © 2026")
