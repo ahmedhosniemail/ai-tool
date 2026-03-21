@@ -1,10 +1,7 @@
 streamlit
 google-generativeai
 Pillow
-pandas
-python-docx
-xlsxwriter
-fpdf
+
 
 
 
