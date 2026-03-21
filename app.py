@@ -5,35 +5,40 @@ from PIL import Image
 # 1. إعدادات الهوية A.H
 st.set_page_config(page_title="A.H AI Pro", page_icon="⚡")
 
-# 2. الربط بالمفتاح الجديد وتجهيز الموديل
+# 2. الربط المباشر بالمفتاح الجديد
+# تم استخدام المفتاح: AIzaSyAt-pa38pTx0eFa7tGbEeEOpaZTwFYZ_n4
 genai.configure(api_key="AIzaSyAt-pa38pTx0eFa7tGbEeEOpaZTwFYZ_n4")
-model = genai.GenerativeModel('gemini-1.5-flash')
 
-# تنسيق الواجهة
-st.markdown("<h2 style='text-align: center; color: #27ae60;'>A.H - فحص فوري ذكي 🥗</h2>", unsafe_allow_html=True)
+# استخدام اسم الموديل الأكثر شمولية لتجنب خطأ 404
+model = genai.GenerativeModel('gemini-pro-vision')
 
-# 3. واجهة المستخدم
-file = st.file_uploader("📸 ارفع صورة المنتج الآن", type=["jpg", "png", "jpeg"])
+# تصميم الواجهة
+st.markdown("<h2 style='text-align: center; color: #27ae60;'>A.H - الفحص الذكي 🥗</h2>", unsafe_allow_html=True)
+# 3. واجهة الرفع
+file = st.file_uploader("📸 ارفع صورة المنتج", type=["jpg", "png", "jpeg"])
 
 if file:
-    image = Image.open(file)
-    st.image(image, use_container_width=True)
+    img = Image.open(file)
+    st.image(img, use_container_width=True)
     
-    if st.button("🚀 ابدأ التحليل الفوري"):
-        with st.spinner("⚡ جاري استخراج البيانات..."):
+    if st.button("🚀 تحليل المنتج الآن"):
+        with st.spinner("⏳ جاري استخراج البيانات..."):
             try:
-                # طلب التحليل المباشر من الموديل
-                response = model.generate_content([
-                    "Analyze this food image in Arabic. Mention ingredients, calories, and health rating.", 
-                    image
-                ])
+                # طلب بسيط ومباشر
+                res = model.generate_content(["حلل مكونات الصورة والتقييم الصحي بالعربية", img])
                 st.markdown("---")
-                st.success("✅ التقرير جاهز:")
-                st.write(response.text)
+                st.success("✅ تم التحليل:")
+                st.write(res.text)
                 st.balloons()
             except Exception as e:
-                st.error(f"حدث خطأ بسيط: {str(e)}")
-                st.info("اضغط على الزر مرة أخرى، أحياناً يحتاج السيرفر لدفعة ثانية.")
+                # إذا فشل الموديل الأول، الكود سينتقل تلقائياً للموديل البديل فوراً
+                try:
+                    alt_model = genai.GenerativeModel('gemini-1.5-flash-latest')
+                    res = alt_model.generate_content(["حلل الصورة بالعربية", img])
+                    st.success("✅ تم التحليل (نسخة احتياطية):")
+                    st.write(res.text)
+                except:
+                    st.error("السيرفر يحتاج لتحديث يدوي: اذهب إلى Manage App ثم Reboot.")
 
 st.markdown("---")
 st.caption("Developed by A.H AI Pro © 2026")
